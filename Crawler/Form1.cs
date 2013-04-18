@@ -15,6 +15,7 @@ namespace Crawler
         public Form1()
         {
             InitializeComponent();
+            
         }
     }
 }
