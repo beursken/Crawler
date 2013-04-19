@@ -14,6 +14,8 @@ namespace Crawler.Backend
         bool _canEnter = false;
         bool _canPickup = false;
         bool _doesWarp = false;
+        Tile _parent = null;
+
 
         string _name = "";
         string Name
@@ -42,7 +44,14 @@ namespace Crawler.Backend
             writer.WriteAttributeString("name", _name.ToString().Trim());
             base.Save(writer);
             writer.WriteEndElement();
+        }
 
+        public Crawler.Backend.Location CurrentLocation
+        {
+            get
+            {
+                return new Crawler.Backend.Location(_parent.x, _parent.y);
+            }
         }
     }
 

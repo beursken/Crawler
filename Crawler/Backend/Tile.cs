@@ -23,6 +23,14 @@ namespace Crawler.Backend
             return (_wallStyle != -1);
         }
 
+        public Crawler.Backend.Location CurrentLocation
+        {
+            get
+            {
+                return new Crawler.Backend.Location(x, y);
+            }
+        }
+
         public List<Placeable> placeables
         {
             get

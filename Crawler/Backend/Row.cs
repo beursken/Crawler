@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace Crawler.Backend
 {
-     class Row
+    class Row
     {
         List<Tile> _cols;
         Map _parent;
@@ -216,12 +216,11 @@ namespace Crawler.Backend
 
         public void Load(XmlTextReader reader)
         {
-            System.Diagnostics.Debug.Write("\n\n Read Line \n\n");
-                                    reader.Read();
+            reader.Read();
 
             do
             {
-                _cols[XmlConvert.ToInt32(reader.GetAttribute("id"))].Load(reader);                
+                _cols[XmlConvert.ToInt32(reader.GetAttribute("id"))].Load(reader);
             }
             while (reader.ReadToNextSibling("Col"));
         }

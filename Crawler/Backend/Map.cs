@@ -10,6 +10,15 @@ using Crawler.Frontend;
 namespace Crawler.Backend
 {
 
+    public class Location{
+    int x;
+        int y;
+        public Location(int _x=0,int _y=0){
+            x=_x;
+            y=_y;
+        }
+    }
+
     /// <summary>
     /// Connections between maps (including teleports)
     /// </summary>
@@ -58,6 +67,7 @@ namespace Crawler.Backend
         bool _valid = false;
         List<Row> _rows = null;
         string _description = "";
+        List<ViewObject> _animated = null;
 
         /// <summary>
         /// Whether a location on the map can be entered by Actors/monsters/NPCs
@@ -75,6 +85,7 @@ namespace Crawler.Backend
             return false;
         }
 
+     
 
         public void UpdateTile(int x, int y, int posX, int posY, string path)
         {
@@ -259,6 +270,7 @@ namespace Crawler.Backend
         public void Setup(int width = 0, int height = 0)
         {
             _rows = new List<Row>();
+            _animated = new List<ViewObject>();
             _width = width;
             _height = height;
             for (int count = 0; count < height; count++)
@@ -313,6 +325,8 @@ namespace Crawler.Backend
             return false;
         }
 
+
+
         public Tile GetTile(int x, int y)
         {
             if ((y > -1) && (y < _height) && (x > -1) && (x < _height))
@@ -349,6 +363,17 @@ namespace Crawler.Backend
 
         }
 
+
+        public List<Location> UpdateAnimations()
+        {
+            List<Location> result = new List<Location>();
+            foreach (ViewObject v in _animated)
+            {
+                v.incPhase();
+                result.Add(v.CurrentLocation);
+            }
+            return result;
+        }
         /// <summary>
         /// Constructor for a map loaded from a file
         /// </summary>

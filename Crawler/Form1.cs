@@ -20,13 +20,14 @@ namespace Crawler
         string _path = "images/terrain_atlas.png";
 
         Backend.Map currentMap = null;
-
+        Frontend.EventLoop events = null;
         public MainWindow()
         {
             InitializeComponent();
             WindowState = FormWindowState.Maximized;
             FormBorderStyle = FormBorderStyle.None;
             SetStyle(ControlStyles.ResizeRedraw, true);
+            DoubleBuffered = true;
             currentMap = new Backend.Map("start");           
 
             if (currentMap.Width < 1)
@@ -34,6 +35,7 @@ namespace Crawler
                 currentMap = new Backend.Map(10, 10, false);
             }
             Invalidate();
+            events = new Frontend.EventLoop(this);
         }
 
 
@@ -41,7 +43,7 @@ namespace Crawler
         {
 
             Graphics target = e.Graphics;
-            Image i = Image.FromFile(_path);
+            Image i = Frontend.ImageCache.LoadImg(_path);
 
             target.FillRectangle(new SolidBrush(Color.DarkGray), new Rectangle(10, 50, _zoomLevel * currentMap.Width, _zoomLevel * currentMap.Height));
             Bitmap bmp = new Bitmap(currentMap.Width * 32, currentMap.Height * 32);
@@ -71,6 +73,10 @@ namespace Crawler
                 target.DrawString("Beenden", myFont, blackBrush, Width - 170, 10);
 
             };
+            whiteBrush.Dispose();
+            blackBrush.Dispose();
+            myFont.Dispose();
+
 
 
         }
@@ -140,5 +146,7 @@ namespace Crawler
             }
 
         }
+
+        
     }
 }
