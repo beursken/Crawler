@@ -3,20 +3,52 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using Crawler.Frontend;
 
 namespace Crawler.Backend
 {
-    class Placeable
+    class Placeable : ViewObject
     {
-        string _description = "";
-        bool canEnter = false;
-        bool canPickup = false;
-        bool doesWarp = false;
+
+        bool _canEnter = false;
+        bool _canPickup = false;
+        bool _doesWarp = false;
+
+        string _name = "";
+        string Name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+
+        public void Load(XmlReader reader)
+        {
+            reader.ReadStartElement("Placeable");
+            _canEnter = (reader.GetAttribute("canEnter", "").Trim() == "1");
+            _doesWarp = (reader.GetAttribute("doesWarp", "").Trim() == "1");
+            _canPickup = (reader.GetAttribute("canPickup", "").Trim() == "1");
+            _name = reader.GetAttribute("name", "").Trim();
+            base.Load(reader);
+            reader.ReadEndElement();
+        }
+
+        public void Save(XmlWriter writer)
+        {
+            writer.WriteStartElement("Placeable");
+            writer.WriteAttributeString("canEnter", _canEnter ? "1" : "0");
+            writer.WriteAttributeString("doesWarp", _doesWarp ? "1" : "0");
+            writer.WriteAttributeString("canPickup", _canPickup ? "1" : "0");
+            writer.WriteAttributeString("name", _name.ToString().Trim());
+            base.Save(writer);
+            writer.WriteEndElement();
+
+        }
     }
 
     class Teleporter : Placeable
     {
-        
+
     }
 
     class Chest : Placeable

@@ -1,6 +1,6 @@
 ﻿namespace Crawler
 {
-    partial class Form1
+    partial class MainWindow
     {
         /// <summary>
         /// Erforderliche Designervariable.
@@ -30,13 +30,18 @@
         {
             this.SuspendLayout();
             // 
-            // Form1
+            // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.Black;
             this.ClientSize = new System.Drawing.Size(1200, 882);
-            this.Name = "Form1";
+            this.Name = "MainWindow";
             this.Text = "Form1";
+            this.Paint += new System.Windows.Forms.PaintEventHandler(this.MainWindow_Paint);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainWindow_KeyDown);
+            this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseClick);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseMove);
             this.ResumeLayout(false);
 
         }
