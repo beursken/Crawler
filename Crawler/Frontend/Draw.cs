@@ -5,18 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.Xml;
+using Crawler.Server;
 
 namespace Crawler.Frontend
 {
-    class Button
-    {
-        bool _Highlight;
-        int _x = 0;
-        int _y = 0;
-        string _label = "";
-        int _width = 0;
-        int _height = 0;
-    }
+
 
     enum Direction
     {
@@ -25,10 +18,76 @@ namespace Crawler.Frontend
         right = 2,
         bottom = 3
     }
+
     class Draw
     {
-        private static int _phase = 0;
+        #region "Private Fields"
+        private int _x = 0, _y = 0;
+        private Dispatcher _opener = null;
+        private int _px = 0, _py = 0;
+        /// <summary>
+        /// A reference to a map
+        /// </summary>
 
+        private string _path = "images/terrain_atlas.png";
+        #endregion
+
+
+        #region "Static Fields"
+        private static int _phase = 0;
+        #endregion
+
+        public void placeImage(Graphics target, Image image, Rectangle area)
+        {
+            target.DrawImage(image, area);
+
+        }
+
+
+        public void Refresh(Graphics target, Rectangle area)
+        {
+            foreach (Frontend.Button button in _opener.buttons)
+            {
+                button.Draw(target);
+            };
+            //Image i = Frontend.ImageCache.LoadImg(_path);
+
+
+            // Bitmap bmp = new Bitmap(_opener.map.Width * 32, _opener.map.Height * 32);
+            // Graphics temp = Graphics.FromImage(bmp);
+            _opener.mapview.DrawMap(_opener.map, target);
+            //target.DrawImage(bmp, new Rectangle(10, 50, _opener.Zoom * _opener.map.Width, _opener.Zoom * _opener.map.Height), new Rectangle(0, 0, _opener.map.Width * 32, _opener.map.Height * 32), GraphicsUnit.Pixel);
+            //  target.DrawImage(i, new Rectangle(10 + _px * _opener.Zoom, 50 + _py * _opener.Zoom, _opener.Zoom, _opener.Zoom), new Rectangle(_x * 32, _y * 32, 31, 31), GraphicsUnit.Pixel);
+
+
+            _opener.toolbox.Draw(target);
+
+            if ((_opener.attachedImage != null)&&(_opener.attachedImagePos.X>-1))
+            {
+                placeImage(target, _opener.attachedImage, _opener.attachedImagePos);
+            }
+        }
+
+        #region "Constructor"
+        /// <summary>
+        /// Create a new draw hooked to a Windows.Forms object and (optionally) a map
+        /// </summary>
+        /// <param name="opener">The Form to which Redraw events are passed</param>
+        /// <param name="currentMap">(optional) map to use</param>
+        public Draw(Dispatcher opener = null, Backend.Map currentMap = null)
+        {
+            _opener = opener;
+        }
+        #endregion
+
+        #region "Static Methods"
+        /// <summary>
+        /// Animate an actor
+        /// </summary>
+        /// <param name="direction"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="target"></param>
         public static void Animate(Direction direction, int x, int y, Graphics target)
         {
             Bitmap _pic = new Bitmap(32, 32);
@@ -40,24 +99,8 @@ namespace Crawler.Frontend
             if (_phase > 2) _phase = 0;
         }
 
-        public static void DrawMap(Backend.Map map, Graphics target)
-        {
-            for (int y = 0; y < map.Height; y++)
-            {
-                for (int x = 0; x < map.Width; x++)
-                {
-                    map.GetTile(x, y).Draw(target, x * 32, y * 32);
-                    /* foreach (Backend.Placeable placeable in map.GetTile(x, y).placeables)
-                     {
-                         placeable.Draw(target, x * 32, y * 32);
-                     }
-                     foreach (Backend.Actor actor in map.GetTile(x, y).actors)
-                     {
-                         actor.Draw(target, x * 32, y * 32);
-                     } */
-                }
-            }
-        }
+
+        #endregion
     }
 
 
@@ -67,8 +110,8 @@ namespace Crawler.Frontend
         class CacheElem
         {
             public string name;
-            public Image img;
-            public CacheElem(string _name, Image _img)
+            public Bitmap img;
+            public CacheElem(string _name, Bitmap _img)
             {
                 name = _name;
                 img = _img;
@@ -77,7 +120,7 @@ namespace Crawler.Frontend
 
         static List<CacheElem> _img = null;
 
-        public static Image LoadImg(string name)
+        public static Bitmap LoadImg(string name)
         {
             name = name.ToLower().Trim();
             if (_img == null) { _img = new List<CacheElem>(); };
@@ -85,9 +128,11 @@ namespace Crawler.Frontend
             {
                 if (i.name == name) return i.img;
             }
-            _img.Add(new CacheElem(name, Image.FromFile(name)));
-            return _img.Last().img;
+            CacheElem newImg = new CacheElem(name, (Bitmap)Image.FromFile(name));
+            _img.Add(newImg);
+            return newImg.img;
         }
+
         public static void EmptyCache()
         {
             foreach (CacheElem i in _img)
@@ -98,146 +143,5 @@ namespace Crawler.Frontend
         }
     }
 
-
-    class ViewObject
-    {
-        string _description;
-        string _imageFile = "images/terrain_atlas.png";
-        System.Drawing.Bitmap _pic = null;
-        int _px = -1;
-        int _py = -1;
-        int _hphase = 0;
-        int _vphase = 0;
-        int _currentPhase = 0;
-        int _cachedPhase = 0;
-        /// <summary>
-        /// Draw the current object
-        /// </summary>
-        /// <param name="target"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        public void Draw(System.Drawing.Graphics target, int x, int y)
-        {
-            if (pic != null)
-            {
-                target.DrawImage(pic, x, y);
-            }
-        }
-
-        public int PX
-        {
-            get { return _px; }
-        }
-
-        public int PY
-        {
-            get { return _py; }
-        }
-
-        public int Phase
-        {
-            get
-            {
-                return _currentPhase;
-            }
-            set
-            {
-
-                if (value <= (_vphase * _hphase))
-                {
-                    _currentPhase = value;
-                }
-                else
-                {
-                    _currentPhase = 0;
-                }
-            }
-        }
-
-        public bool Animated
-        {
-            get
-            {
-                return (_vphase * _hphase > 0);
-            }
-        }
-
-        public void incPhase()
-        {
-            if (_currentPhase <= (_vphase * _hphase))
-            {
-                _currentPhase += 1;
-            }
-            else
-            {
-                _currentPhase = 0;
-            }
-        }
-
-        public void UpdateTile(int posX = -2, int posY = -2, string path = "#")
-        {
-            if (posX != -2) _px = posX;
-            if (posY != -2) _py = posY;
-            if (path != "#") _imageFile = path;
-            _pic = null;
-
-        }
-
-
-
-        public System.Drawing.Image pic
-        {
-            get
-            {
-
-                if ((_pic != null) && (_cachedPhase == _currentPhase)) return _pic;
-                if (_imageFile == "") return null;
-                _pic = new Bitmap(32, 32);
-                Graphics target = Graphics.FromImage(_pic);
-                target.DrawImage(ImageCache.LoadImg(_imageFile), new Rectangle(0, 0, 32, 32), new Rectangle(_px * 32, _py * 32, 32, 32), GraphicsUnit.Pixel);
-                return _pic;
-            }
-        }
-
-        public Crawler.Backend.Location CurrentLocation
-        {
-            get
-            {
-                return new Crawler.Backend.Location(-1, -1);
-            }
-        }
-
-        public void Load(XmlReader reader)
-        {
-            _px = XmlConvert.ToInt32(reader.GetAttribute("picX", ""));
-            _py = XmlConvert.ToInt32(reader.GetAttribute("picY", ""));
-            try
-            {
-                _hphase = XmlConvert.ToInt32(reader.GetAttribute("hPhase", ""));
-                _vphase = XmlConvert.ToInt32(reader.GetAttribute("vPhase", ""));
-            }
-            catch { }
-            reader.Read();
-            _description = reader.ReadElementContentAsString("description", "").Trim();
-            _imageFile = reader.ReadElementContentAsString("imgFile", "").Trim();
-            reader.ReadEndElement();
-
-        }
-
-        public void Save(XmlWriter writer)
-        {
-            writer.WriteStartElement("img");
-            writer.WriteAttributeString("picX", _px.ToString());
-            writer.WriteAttributeString("picY", _py.ToString());
-            writer.WriteAttributeString("hPhase", _hphase.ToString());
-            writer.WriteAttributeString("vPhase", _vphase.ToString());
-
-
-            writer.WriteElementString("description", _description);
-            writer.WriteElementString("imgFile", _imageFile);
-            writer.WriteEndElement();
-        }
-
-    }
 
 }

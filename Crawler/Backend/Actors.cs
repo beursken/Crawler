@@ -8,21 +8,36 @@ using Crawler.Frontend;
 
 namespace Crawler.Backend
 {
+    /// <summary>
+    /// A player or computer controlled person
+    /// </summary>
     class Actor : ViewObject
     {
+        #region "Private Fields"        
+        private bool _canEnter = false;
+        private bool _doesWarp = false;
+        private Tile _parent = null;
+        private string _name = "";
+        #endregion
 
-        bool _canEnter = false;
-        bool _doesWarp = false;
-        Tile _parent = null;
-
-        string _name = "";
-        string Name
+        #region "Public Fields"
+        public string Name
         {
             get { return _name; }
             set { _name = value; }
         }
 
-        public void Load(XmlReader reader)
+        public new System.Drawing.Point CurrentLocation
+        {
+            get
+            {
+                return new System.Drawing.Point(_parent.x, _parent.y);
+            }
+        }
+        #endregion
+
+        #region "Public Methods"
+        public new void Load(XmlTextReader reader)
         {
             reader.ReadStartElement("Placeable");
             _canEnter = (reader.GetAttribute("canEnter", "").Trim() == "1");
@@ -32,8 +47,11 @@ namespace Crawler.Backend
             reader.ReadEndElement();
         }
 
-
-        public void Save(XmlWriter writer)
+        /// <summary>
+        /// Writ
+        /// </summary>
+        /// <param name="writer"></param>
+        public new void Save(XmlTextWriter writer)
         {
             writer.WriteStartElement("Actor");
             writer.WriteAttributeString("canEnter", _canEnter ? "1" : "0");
@@ -42,31 +60,36 @@ namespace Crawler.Backend
             base.Save(writer);
             writer.WriteEndElement();
         }
-
-        public Crawler.Backend.Location CurrentLocation
-        {
-            get
-            {
-                return new Crawler.Backend.Location(_parent.x, _parent.y);
-            }
-        }
+        #endregion
     }
 
+    /// <summary>
+    /// An Actor controlled by a Player 
+    /// </summary>
     class Player : Actor
     {
 
     }
 
+    /// <summary>
+    /// An Enemy controlled by the Computer
+    /// </summary>
     class Enemy : Actor
     {
 
     }
 
+    /// <summary>
+    /// A Companion controlled by the Computer
+    /// </summary>
     class Companion : Actor
     {
 
     }
 
+    /// <summary>
+    /// An NPC controlled by the Computer
+    /// </summary>
     class NPC : Actor
     {
 

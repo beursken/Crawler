@@ -225,7 +225,7 @@ namespace Crawler.Backend
             while (reader.ReadToNextSibling("Col"));
         }
 
-        public void Save(XmlWriter writer)
+        public void Save(XmlTextWriter writer)
         {
             writer.WriteStartElement("Row");
             writer.WriteAttributeString("id", y.ToString());

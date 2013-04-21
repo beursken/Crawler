@@ -6,69 +6,73 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Crawler.Frontend;
+using Crawler.Server;
 
 namespace Crawler.Backend
 {
-
-    public class Location{
-    int x;
-        int y;
-        public Location(int _x=0,int _y=0){
-            x=_x;
-            y=_y;
-        }
-    }
-
-    /// <summary>
-    /// Connections between maps (including teleports)
-    /// </summary>
-    class Exit
-    {
-        Tile _tile = null;
-        string _toFile = "";
-        bool _toRandom = true;
-        public int x
-        {
-            get
-            {
-                if (_tile != null)
-                {
-                    return _tile.x;
-                }
-                return -1;
-            }
-
-        }
-        public int y
-        {
-            get
-            {
-                if (_tile != null)
-                {
-                    return _tile.y;
-                }
-                return -1;
-            }
-
-
-        }
-
-
-    }
-
-
-
-
-
     class Map
     {
-        int _width = 0;
-        int _height = 0;
-        bool _valid = false;
-        List<Row> _rows = null;
-        string _description = "";
-        List<ViewObject> _animated = null;
+        #region "Private Fields"
+        private int _width = 0;
+        private int _height = 0;
+        private bool _valid = false;
+        private List<Row> _rows = null;
+        private string _description = "";
+        private Dispatcher _opener = null;
+        private List<ViewObject> _animated = null;
+        private string _filename = "";
+        #endregion
 
+        #region "Public Fields"
+        public int Height
+        {
+            get { return _height; }
+            set
+            {
+                while (_height < value)
+                {
+                    _height += 1;
+                    _rows.Add(new Row(this, _width));
+                }
+                while ((value > -1) && (_height > value))
+                {
+                    _height -= -1;
+                    _rows.RemoveAt(_rows.Count - 1);
+                }
+            }
+        }
+
+        public string Filename
+        {
+            get { return _filename; }
+            set { Load(value); }
+        }
+        public int Width
+        {
+            get { return _width; }
+            set
+            {
+                if (_width < value)
+                {
+                    _width = value;
+                    foreach (Row row in _rows)
+                    {
+                        row.Width = value;
+                    }
+                }
+                if (_width > value)
+                {
+                    _width = value;
+                    foreach (Row row in _rows)
+                    {
+                        row.Width = value;
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region "Public Methods"
         /// <summary>
         /// Whether a location on the map can be entered by Actors/monsters/NPCs
         /// </summary>
@@ -85,7 +89,7 @@ namespace Crawler.Backend
             return false;
         }
 
-     
+
 
         public void UpdateTile(int x, int y, int posX, int posY, string path)
         {
@@ -167,47 +171,9 @@ namespace Crawler.Backend
             };
         }
 
-        public int Height
-        {
-            get { return _height; }
-            set
-            {
-                while (_height < value)
-                {
-                    _height += 1;
-                    _rows.Add(new Row(this, _width));
-                }
-                while ((value > -1) && (_height > value))
-                {
-                    _height -= -1;
-                    _rows.RemoveAt(_rows.Count - 1);
-                }
-            }
-        }
+        #endregion
 
-        public int Width
-        {
-            get { return _width; }
-            set
-            {
-                if (_width < value)
-                {
-                    _width = value;
-                    foreach (Row row in _rows)
-                    {
-                        row.Width = value;
-                    }
-                }
-                if (_width > value)
-                {
-                    _width = value;
-                    foreach (Row row in _rows)
-                    {
-                        row.Width = value;
-                    }
-                }
-            }
-        }
+
 
         public List<Placeable> GetPlaceables(int x, int y)
         {
@@ -280,25 +246,14 @@ namespace Crawler.Backend
 
         }
 
-        /// <summary>
-        /// Constructor for an empty map
-        /// </summary>
-        /// <param name="width">Number of horizontal tiles</param>
-        /// <param name="height">Number of vertical tiles</param>
-        /// <param name="generate">Place random walls</param>
-        public Map(int width = 0, int height = 0, bool generate = false)
-        {
-            _valid = false;
-            Setup(width, height);
-            if (generate)
-            {
-                PlaceWalls();
-                _valid = true;
-            }
-        }
 
         public bool Load(string fileName)
         {
+            fileName = fileName.ToLower().Trim();
+            if (!fileName.EndsWith(".xml"))
+            {
+                fileName += ".xml";
+            }
             if (System.IO.File.Exists(fileName))
             {
                 XmlTextReader reader = new XmlTextReader(fileName);
@@ -316,7 +271,7 @@ namespace Crawler.Backend
                     }
                     while (reader.ReadToNextSibling("Row"));
 
-
+                    _filename = fileName;
                     return true;
                 }
                 //catch { }
@@ -325,25 +280,19 @@ namespace Crawler.Backend
             return false;
         }
 
-
-
-        public Tile GetTile(int x, int y)
-        {
-            if ((y > -1) && (y < _height) && (x > -1) && (x < _height))
-            {
-                return _rows[y].GetTile(x);
-            }
-            return null;
-        }
         /// <summary>
         /// Save the current map to an XML-File
         /// </summary>
         /// <param name="fileName">The filename to be used (XML-extension automatically appended)</param>
         public void Save(string fileName)
         {
-            fileName += ".xml";
+            fileName = fileName.ToLower().Trim();
+            if (!fileName.EndsWith(".xml"))
+            {
+                fileName += ".xml";
+            }
             XmlTextWriter writer = new XmlTextWriter(fileName, null);
-
+            System.Diagnostics.Debug.WriteLine("Save to " + fileName);
             writer.WriteStartDocument();
             writer.WriteDocType("crawlMap", null, null, null);
             writer.WriteComment("Verbose Map file for Crawler Prototype");
@@ -364,9 +313,19 @@ namespace Crawler.Backend
         }
 
 
-        public List<Location> UpdateAnimations()
+        public Tile GetTile(int x, int y)
         {
-            List<Location> result = new List<Location>();
+            if ((y > -1) && (y < _height) && (x > -1) && (x < _height))
+            {
+                return _rows[y].GetTile(x);
+            }
+            return null;
+        }
+
+
+        public List<System.Drawing.Point> UpdateAnimations()
+        {
+            List<System.Drawing.Point> result = new List<System.Drawing.Point>();
             foreach (ViewObject v in _animated)
             {
                 v.incPhase();
@@ -374,17 +333,20 @@ namespace Crawler.Backend
             }
             return result;
         }
+
+        #region "Constructors / Destructors"
+
         /// <summary>
         /// Constructor for a map loaded from a file
         /// </summary>
         /// <param name="fileName">An XML-file containing map-data (XML-extension automatically appended)</param>
-        public Map(string fileName)
+        public Map(Dispatcher opener, string fileName)
         {
-            fileName += ".xml";
+            _opener = opener;
             if (Load(fileName))
             {
-
                 _valid = true;
+                _filename = fileName;
             }
             else
             {
@@ -395,7 +357,24 @@ namespace Crawler.Backend
         }
 
 
-
+        /// <summary>
+        /// Constructor for an empty map
+        /// </summary>
+        /// <param name="width">Number of horizontal tiles</param>
+        /// <param name="height">Number of vertical tiles</param>
+        /// <param name="generate">Place random walls</param>
+        public Map(Dispatcher opener, int width = 0, int height = 0, bool generate = false)
+        {
+            _opener = opener;
+            _valid = false;
+            Setup(width, height);
+            if (generate)
+            {
+                PlaceWalls();
+                _valid = true;
+            }
+        }
+        #endregion
 
 
     }

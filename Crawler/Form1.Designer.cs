@@ -42,7 +42,10 @@
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.MainWindow_Paint);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainWindow_KeyDown);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseClick);
+            this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseDoubleClick);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseUp);
+            this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseWheel);
             this.ResumeLayout(false);
 
         }

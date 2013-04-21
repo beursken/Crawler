@@ -13,7 +13,6 @@ namespace Crawler.Backend
         string _description = "";
         List<Placeable> _placeables;
         List<Actor> _actors;
-        Exit _exit = null;
         int _floorStyle = 0;
         int _wallStyle = -1;
         Row _parent = null;
@@ -23,11 +22,11 @@ namespace Crawler.Backend
             return (_wallStyle != -1);
         }
 
-        public Crawler.Backend.Location CurrentLocation
+        public new System.Drawing.Point CurrentLocation
         {
             get
             {
-                return new Crawler.Backend.Location(x, y);
+                return new System.Drawing.Point(x, y);
             }
         }
 
@@ -127,7 +126,7 @@ namespace Crawler.Backend
 
         }
 
-        public void Load(XmlTextReader reader)
+        public new void Load(XmlTextReader reader)
         {
             reader.Read();
             _description = reader.ReadElementString("description", "");
@@ -135,21 +134,27 @@ namespace Crawler.Backend
             _wallStyle = XmlConvert.ToInt32(reader.ReadElementString("wallStyle", ""));
 
             // Solange Placeables da sind
-            foreach (Placeable placeable in _placeables)
+            while (reader.Name == "Placeable")
             {
-                placeable.Load(reader);
+                Placeable p = new Placeable(0, 0, "");
+                p.Load(reader);
+                _placeables.Add(p);
+                reader.Read();
             }
 
             // Solange Actors da sind
-            foreach (Actor actor in _actors)
+            while (reader.Name == "Actor")
             {
-                actor.Load(reader);
+                Actor a = new Actor();
+                a.Load(reader);
+                _actors.Add(a);
+                reader.Read();
             }
             base.Load(reader);
 
         }
 
-        public void Save(XmlWriter writer)
+        public new void Save(XmlTextWriter writer)
         {
             writer.WriteStartElement("Col");
             writer.WriteAttributeString("id", x.ToString());

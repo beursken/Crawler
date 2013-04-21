@@ -64,15 +64,20 @@
     <Compile Include="Backend\Actors.cs" />
     <Compile Include="Backend\Row.cs" />
     <Compile Include="Backend\Tile.cs" />
+    <Compile Include="Dispatcher\Dispatcher.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Frontend\Button.cs" />
     <Compile Include="Frontend\Draw.cs" />
     <Compile Include="Frontend\EventLoop.cs" />
     <Compile Include="Frontend\Input.cs" />
+    <Compile Include="Frontend\MapTile.cs" />
+    <Compile Include="Frontend\Toolbox.cs" />
+    <Compile Include="Frontend\ViewObject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
